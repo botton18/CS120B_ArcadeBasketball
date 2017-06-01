@@ -1,0 +1,108 @@
+/*
+ * StepperMotar.c
+ *
+ * Created: 5/29/2017 9:12:21 PM
+ * Author : Dillon
+ */ 
+
+#include <avr/io.h>
+#include <timer.h>
+
+
+
+enum states{Init, A,AB,B,BC,C,CD,D,DA}state;
+
+void Tick()
+{
+	switch(state)
+	{
+		case Init:
+			state = A;
+			break;
+		case A:
+			state = AB;
+			break;
+		case AB:
+			state = B;
+			break;
+		case B:
+			state = BC;
+			break;
+		case BC:
+			state = C;
+			break;
+		
+		case C:
+			state = CD;
+			break;
+		case CD:
+			state = D;
+			break;
+		case D:
+			state = DA;
+			break;
+		case DA:
+			state = A;
+			break;
+		
+		default:
+			state = Init;
+			break;
+	}
+	switch(state)
+	{
+		case Init:
+			PORTA = 0x00;
+			break;
+		case A:
+			PORTA = 0x01;
+			break;
+		case AB:
+			PORTA = 0x03;
+			break;
+		case B:
+			PORTA = 0x02;
+			break;
+		case BC:
+			PORTA = 0x06;
+			break;
+		
+		case C:
+			PORTA = 0x04;
+			break;
+		case CD:
+			PORTA = 0x0C;
+			break;
+		case D:
+			PORTA = 0x08;
+			break;
+		case DA:
+			PORTA = 0x09;
+			break;
+		
+		
+	}
+}
+
+
+int main(void)
+{
+    DDRA = 0xFF;
+	PORTA = 0x00;
+	DDRB = 0xFF;
+	PORTB = 0x00;
+	
+	TimerSet(5);
+	TimerOn();
+
+	state = Init;
+
+	while (1) 
+    {
+		
+		Tick();
+		while(!TimerFlag);
+		TimerFlag=0;
+    }
+}
+

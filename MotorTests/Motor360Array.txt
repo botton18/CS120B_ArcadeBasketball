@@ -1,0 +1,64 @@
+/*
+ * StepperMotar.c
+ *
+ * Created: 5/29/2017 9:12:21 PM
+ * Author : Dillon
+ */ 
+
+#include <avr/io.h>
+#include <timer.h>
+
+unsigned char R[] = {0x01,0x03,0x02,0x06,0x04,0x0C,0x08,0x09};
+int i = 0;
+unsigned char forward = 1;
+enum states{Init, Move}state;
+
+void Tick()
+{
+	switch(state)
+	{
+		case Init:
+			state = Move;
+			break;
+		case Move:
+			state = Move;
+			break;
+	}
+	switch(state)
+	{
+		case Init:
+			break;
+		case Move:
+			if(i < 8)
+			{
+				PORTA = R[i];
+				++i;
+			}
+
+			break;
+			
+	}
+}
+
+
+int main(void)
+{
+    DDRA = 0xFF;
+	PORTA = 0x00;
+	DDRB = 0xFF;
+	PORTB = 0x00;
+	
+	TimerSet(5);
+	TimerOn();
+
+	state = Init;
+
+	while (1) 
+    {
+		
+		Tick();
+		while(!TimerFlag);
+		TimerFlag=0;
+    }
+}
+

@@ -1,0 +1,123 @@
+/*
+ * StepperMotar.c
+ *
+ * Created: 5/29/2017 9:12:21 PM
+ * Author : Dillon
+ */ 
+
+#include <avr/io.h>
+#include <timer.h>
+
+unsigned char R[] = {0x01,0x03,0x02,0x06,0x04,0x0C,0x08,0x09};
+unsigned char C[] = {0x09,0x08,0x0C,0x04,0x06,0x02,0x03,0x01};
+int i = 0;
+int j = 0;
+unsigned char forward = 1;
+enum states{Init, Move}state;
+enum back{_Init,_Move}bstate;
+void Tick()
+{
+	switch(state)
+	{
+		case Init:
+			state = Move;
+			break;
+		case Move:
+			state = Move;
+			break;
+	}
+	switch(state)
+	{
+		case Init:
+			break;
+		case Move:
+			if(i < 8)
+			{
+				PORTA = R[i];
+				++i;
+			}
+			else
+			{
+				i = 0;
+			}
+			break;
+			
+	}
+}
+
+void Back()
+{
+	switch(bstate)
+	{
+		case _Init:
+		bstate = _Move;
+		break;
+		case _Move:
+		bstate = _Move;
+		break;
+	}
+	switch(bstate)
+	{
+		case _Init:
+		break;
+		case _Move:
+		if(j < 8)
+		{
+			PORTA = C[j];
+			++j;
+		}
+		else
+		{
+			j = 0;
+		}
+		break;
+		
+	}
+}
+
+
+
+int main(void)
+{
+    DDRA = 0xFF;
+	PORTA = 0x00;
+	DDRB = 0xFF;
+	PORTB = 0x00;
+	int num = (90/5.625) * 64;
+	int counter = 0;
+	int bcounter = 0;
+	TimerSet(5);
+	TimerOn();
+	int isCW = 1;
+	state = Init;
+	bstate = _Init;
+
+	while (1) 
+    {
+		
+		if((counter < num) && isCW)
+		{
+			Tick();
+			++counter;
+		}
+		else if((bcounter < num) && !isCW)
+		{
+			Back();
+			++bcounter;
+		}
+		else if(!isCW)
+		{
+			isCW = 1;
+			counter = 0;
+		}
+		else if(isCW)
+		{
+			isCW = 0;
+			bcounter = 0;
+		}
+
+		while(!TimerFlag);
+		TimerFlag=0;
+    }
+}
+
