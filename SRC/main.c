@@ -22,7 +22,19 @@ void displaytime(unsigned long period)
 	if(period % 100 == 0)
 	{
 		convert = period / 100;
-		display(convert,17);
+		convert = 20 - convert;
+
+		if(convert > 9)
+		{
+			display(convert,17);
+		}
+		else
+		{
+			LCD_DisplayString(18," ");
+			LCD_Cursor(17);
+			LCD_WriteData(convert + '0');
+			
+		}
 	}
 }
 
@@ -129,7 +141,12 @@ int main(void)
 	LCD_init();
 
 	unsigned long cnt1 = 0;
-	unsigned long LevelPeriod = 0;
+	unsigned long Level1Period = 0;
+	unsigned long Level2Period = 0;
+	unsigned long Level3Period = 0;
+	
+	unsigned char lvl1 = 1;
+	unsigned char lvl2,lvl3 = 0;
 
 	TimerSet(10);
 	TimerOn();
@@ -137,7 +154,7 @@ int main(void)
     {
 		button = ~PINA & 0x01;
 		//20 sec = 20000
-		if(LevelPeriod < 2000)
+		if(Level1Period < 2000 && lvl1)
 		{
 			cnt1++;
 			if(cnt1 > 1)
@@ -145,13 +162,28 @@ int main(void)
 				Level1();
 				cnt1 = 0;
 			}
-			LevelPeriod++;
-			if(LevelPeriod >= 1000)
+			Level1Period++;
+			if(Level1Period >= 1000)
 			{
 				ScoreCount = 3;
 			}
-			displaytime(LevelPeriod);
+			displaytime(Level1Period);
 		}
+		else
+		{
+			if(score >= 6)
+			{
+				//5 second intermission function()
+				lvl1 = 0;
+				lvl2 = 1;
+			}
+			else
+			{
+				LCD_DisplayString(1,"Game Over!");
+				LCD_ClearScreen();
+			}
+		}
+
 		//else add intermission and set variables to lvl 2
 
 
