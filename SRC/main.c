@@ -12,17 +12,17 @@
 
 
 void display(unsigned char Data, unsigned char column);
-void displaytime(unsigned long period);
+void displaytime(unsigned long period, unsigned long length);
+void TurnMotor();
 
-
-void displaytime(unsigned long period)
+void displaytime(unsigned long period, unsigned long length)
 {
 	unsigned long convert;
 
 	if(period % 100 == 0)
 	{
 		convert = period / 100;
-		convert = 20 - convert;
+		convert = length - convert;
 
 		if(convert > 9)
 		{
@@ -60,6 +60,107 @@ void display(unsigned char Data, unsigned char column)
 		LCD_WriteData(Data + '0');
 	}
 	
+}
+
+int num = (90/5.625) * 64;
+int counter = 0;
+int bcounter = 0;
+int isCW = 1;
+
+void TurnMotor()
+{
+	
+	
+	
+	if((counter < num) && isCW)
+	{
+		CW();
+		++counter;
+	}
+	else if((bcounter < num) && !isCW)
+	{
+		CCW();
+		++bcounter;
+	}
+	else if(!isCW)
+	{
+		isCW = 1;
+		counter = 0;
+	}
+	else if(isCW)
+	{
+		isCW = 0;
+		bcounter = 0;
+	}
+
+}
+
+
+unsigned char R[] = {0x01,0x03,0x02,0x06,0x04,0x0C,0x08,0x09};
+unsigned char C[] = {0x09,0x08,0x0C,0x04,0x06,0x02,0x03,0x01};
+int i = 0;
+int j = 0;
+unsigned char forward = 1;
+enum states{CInit, Move}state;
+enum back{_Init,_Move}bstate;
+void CW()
+{
+	switch(state)
+	{
+		case CInit:
+		state = Move;
+		break;
+		case Move:
+		state = Move;
+		break;
+	}
+	switch(state)
+	{
+		case CInit:
+		break;
+		case Move:
+		if(i < 8)
+		{
+			PORTB = R[i];
+			++i;
+		}
+		else
+		{
+			i = 0;
+		}
+		break;
+		
+	}
+}
+
+void CCW()
+{
+	switch(bstate)
+	{
+		case _Init:
+		bstate = _Move;
+		break;
+		case _Move:
+		bstate = _Move;
+		break;
+	}
+	switch(bstate)
+	{
+		case _Init:
+		break;
+		case _Move:
+		if(j < 8)
+		{
+			PORTB = C[j];
+			++j;
+		}
+		else
+		{
+			j = 0;
+		}
+		break;
+		
+	}
 }
 
 unsigned char button;
@@ -136,17 +237,22 @@ int main(void)
 	PORTA = 0xFF;
 	DDRC = 0xFF; PORTC = 0x00; // LCD data lines
 	DDRD = 0xFF; PORTD = 0x00; // LCD control lines
-	
+	DDRB = 0xFF;
+	PORTB = 0x00;
+
+
 	// Initializes the LCD display
 	LCD_init();
 
+	unsigned char limit[] = {6,10};
+
 	unsigned long cnt1 = 0;
 	unsigned long Level1Period = 0;
-	unsigned long Level2Period = 0;
-	unsigned long Level3Period = 0;
+	unsigned long intermission = 0;
 	
-	unsigned char lvl1 = 1;
-	unsigned char lvl2,lvl3 = 0;
+	unsigned char lvl = 0;
+
+	unsigned char motor = 0;
 
 	TimerSet(10);
 	TimerOn();
@@ -154,8 +260,14 @@ int main(void)
     {
 		button = ~PINA & 0x01;
 		//20 sec = 20000
-		if(Level1Period < 2000 && lvl1)
+	
+		if(Level1Period < 2000)
 		{
+			if(motor)
+			{
+				TurnMotor();
+			}
+			
 			cnt1++;
 			if(cnt1 > 1)
 			{
@@ -167,20 +279,30 @@ int main(void)
 			{
 				ScoreCount = 3;
 			}
-			displaytime(Level1Period);
+			displaytime(Level1Period,20);
 		}
 		else
 		{
-			if(score >= 6)
-			{
-				//5 second intermission function()
-				lvl1 = 0;
-				lvl2 = 1;
-			}
-			else
+			if(lvl == 3 || score < limit[lvl])
 			{
 				LCD_DisplayString(1,"Game Over!");
 				LCD_ClearScreen();
+			}
+			else if(score >= limit[lvl])
+			{
+				if(intermission < 500)
+				{
+					displaytime(intermission,5);
+					++intermission;
+				}
+				else
+				{
+					lvl++; //increment score limit
+					motor = 1; //activate motor
+					Level1Period = 0; //rest timer to continue loop
+					intermission = 0;
+					LCD_ClearScreen();
+				}
 			}
 		}
 
