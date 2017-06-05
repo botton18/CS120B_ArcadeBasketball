@@ -15,6 +15,25 @@ void display(unsigned char Data, unsigned char column);
 void displaytime(unsigned long period, unsigned long length);
 void TurnMotor();
 
+
+void ADC_init() {
+	ADCSRA |= (1 << ADEN) | (1 << ADSC) | (1 << ADATE);
+}
+
+unsigned char Check()
+{
+	if(ADC > 240)
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+
+
 void displaytime(unsigned long period, unsigned long length)
 {
 	unsigned long convert;
@@ -177,7 +196,7 @@ void Level1()
 			break;
 
 		case Idle:
-			if(button)
+			if(Check())
 			{
 				state1 = AddScore;
 			}
@@ -192,7 +211,7 @@ void Level1()
 			break;
 
 		case Wait:
-			if(button)
+			if(Check())
 			{
 				state1 = Wait;
 			}
@@ -239,7 +258,7 @@ int main(void)
 	DDRD = 0xFF; PORTD = 0x00; // LCD control lines
 	DDRB = 0xFF;
 	PORTB = 0x00;
-
+	ADC_init();
 
 	// Initializes the LCD display
 	LCD_init();
