@@ -1,3 +1,4 @@
+
 /*
  * main.cpp.c
  *
@@ -22,7 +23,7 @@ void ADC_init() {
 
 unsigned char Check()
 {
-	if(ADC > 240)
+	if(ADC > 260)
 	{
 		return 0;
 	}
@@ -298,6 +299,10 @@ int main(void)
 			{
 				ScoreCount = 3;
 			}
+			else
+			{
+				ScoreCount = 2;
+			}
 			displaytime(Level1Period,20);
 		}
 		else
@@ -333,4 +338,3 @@ int main(void)
 		TimerFlag = 0;
     }
 }
-
